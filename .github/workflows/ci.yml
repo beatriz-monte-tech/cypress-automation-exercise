@@ -1,0 +1,68 @@
+name: Cypress E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-22.04
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox, edge]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Cypress tests on ${{ matrix.browser }}
+        uses: cypress-io/github-action@v6
+        with:
+          browser: ${{ matrix.browser }}
+          headed: false
+          config-file: cypress.config.js
+
+      - name: Upload screenshots on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots-${{ matrix.browser }}
+          path: cypress/screenshots
+          retention-days: 7
+
+      - name: Upload videos
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cypress-videos-${{ matrix.browser }}
+          path: cypress/videos
+          retention-days: 7
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cypress-reports-${{ matrix.browser }}
+          path: cypress/reports
+          retention-days: 30
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always() && matrix.browser == 'chrome'
+        with:
+          files: |
+            cypress/reports/*.json
