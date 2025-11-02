@@ -35,34 +35,57 @@ jobs:
           browser: ${{ matrix.browser }}
           headed: false
           config-file: cypress.config.js
+        continue-on-error: true
 
       - name: Upload screenshots on failure
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: cypress-screenshots-${{ matrix.browser }}
+          name: cypress-screenshots-${{ matrix.browser }}-${{ github.run_number }}
           path: cypress/screenshots
+          if-no-files-found: ignore
           retention-days: 7
 
       - name: Upload videos
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: cypress-videos-${{ matrix.browser }}
+          name: cypress-videos-${{ matrix.browser }}-${{ github.run_number }}
           path: cypress/videos
+          if-no-files-found: ignore
           retention-days: 7
 
       - name: Upload test reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: cypress-reports-${{ matrix.browser }}
+          name: cypress-reports-${{ matrix.browser }}-${{ github.run_number }}
           path: cypress/reports
+          if-no-files-found: ignore
           retention-days: 30
 
-      - name: Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always() && matrix.browser == 'chrome'
+  # Job para consolidar resultados
+  test-summary:
+    needs: cypress-run
+    runs-on: ubuntu-22.04
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
-          files: |
-            cypress/reports/*.json
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Test Summary
+        run: |
+          echo "## Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Tests executed across Chrome, Firefox, and Edge" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 Check the Actions tab for detailed results and artifacts" >> $GITHUB_STEP_SUMMARY

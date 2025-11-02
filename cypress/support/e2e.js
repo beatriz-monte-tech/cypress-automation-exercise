@@ -1,10 +1,10 @@
-// Import commands
+// Import commands.js
 import './commands';
 
 // Import cypress-mochawesome-reporter
 import 'cypress-mochawesome-reporter/register';
 
-// Prevenir falhas por exceções não capturadas
+// Configurações globais
 Cypress.on('uncaught:exception', (err, runnable) => {
   return false;
 });
@@ -13,4 +13,11 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 beforeEach(() => {
   cy.clearCookies();
   cy.clearLocalStorage();
+});
+
+// After each test
+afterEach(function() {
+  if (this.currentTest.state === 'failed') {
+    cy.screenshot(`${this.currentTest.title} - FAILED`);
+  }
 });
