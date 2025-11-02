@@ -67,3 +67,19 @@ cypress-automation-exercise/
 ├── package.json
 ├── .gitignore
 └── README.md
+```
+
+## 🚀 Como Executar
+Pré-requisitos:
+- Node.js v18 ou superior
+- npm ou yarn
+
+Instalação:
+
+1️⃣ Clone o repositório
+
+2️⃣ Acesse o diretório do projeto
+
+3️⃣ Instale as dependências
+
+▶️ Executar Testes
